@@ -4,10 +4,13 @@
 
 sudo apt-get update
 sudo apt-get install nginx -y
+ufw allow 'Nginx HTTP'
 
-sudo echo "hello World!" > /var/www/html/index.nginx-debian.html
+STRING="Hello World!"
+REDIRECT="\n\tlocation /redirect_me {\n\t\treturn 301 https://github.com/Hagos2022; \n\t}\n"
+FILE="/etc/nginx/sites-available/default"
 
-new_string="server_name _;\n\trewrite ^\/redirect_me google.com permanent;"
-sed -i "s/server_name _;/$new_string/" /etc/nginx/sites-enabled/default
+echo "$STRING" > /var/www/html/index.nginx-debian.html
+sed -i "37i\ $REDIRECT" "$FILE"
 
-service nginx start
+service nginx restart
