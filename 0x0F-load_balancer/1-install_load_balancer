@@ -12,33 +12,17 @@ sudo apt-get -y install haproxy
 sudo chown -R "$USER":"$USER" /etc/default/haproxy
 sudo chown -R "$USER":"$USER" /etc/haproxy/haproxy.cfg
 
-sudo echo "ENABLED=1" > /etc/default/haproxy
-sudo mv /etc/haproxy/haproxy.cfg{,.original}
-sudo touch /etc/haproxy/haproxy.cfg
+CONF="\
+frontend main
+	bind *:80
+	mode http
+	default_backend web-server
 
-echo "global
-   log 127.0.0.1 local0 notice
-   maxconn 2000
-   user haproxy
-   group haproxy
-defaults
-   log   global
-   mode  http
-   option  httplog
-   option  dontlognull
-   retries 3
-   option redispatch
-   timeout connect  5000
-   timeout client  10000
-   timeout server  10000
-frontend www-https
-    bind   0.0.0.0:80
-    option forwardfor
-    default_backend www-backend
-backend www-backend
+backend web-server
     balance  roundrobin
     server 158828-web-01 100.26.49.247 check
     server 158828-web-02 54.173.27.192 check
-" | sudo tee /etc/haproxy/haproxy.cfg
-
-sudo service haproxy restart
+"
+echo "$CONF" >> /etc/haproxy/haproxy.cfg
+echo "ENABLED=1" >> /etc/default/haproxy
+service haproxy start
