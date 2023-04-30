@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # Configure Nginx so that its HTTP response contains a custom header
 # shellcheck disable=SC2154
 
@@ -10,26 +9,15 @@ sudo ufw allow 'Nginx HTTP'
 sudo chown -R "$USER":"$USER" /var/www/html
 sudo chown -R "$USER":"$USER" /etc/nginx/sites-available/default
 
-touch /var/www/html/index.html
-echo 'Hello World!' > /var/www/html/index.html
+echo "Hello World!" > /var/www/html/index.nginx-debian.html
 
-touch /var/www/html/404.html
-echo "Ceci n'est pas une page" > /var/www/html/404.html
+echo "Ceci n'est pas une page" > /usr/share/nginx/html/custom_404.html
 
-echo "server {
-     listen      80 default_server;
-     listen      [::]:80 default_server;
-     add_header  X-Served-By $HOSTNAME;
-     root        /var/www/html;
-     index       index.html index.htm;
-     location /redirect_me {
-        return 301 https://github.com/Hagos2022;
-    }
-    error_page 404 /404.html;
-    location /404 {
-      root /var/www/html;
-      internal;
-    }
-}" > /etc/nginx/sites-available/default
+sed -i "/listen 80 default_server/a \\\trewrite ^/redirect_me https://github.com/Hagos2022 permanent;" /etc/nginx/sites-available/default
 
-sudo service nginx restart
+sed -i "/listen 80 default_server/a \\\terror_page 404 /custom_404.html; location = /custom_404.html {root /usr/share/nginx/html;\n\tinternal;}" /etc/nginx/sites-available/default
+
+
+sed -i "/listen 80 default_server/a \\\tadd_header X-Served-By $(hostname);" /etc/nginx/sites-available/default
+
+service nginx restart
