@@ -7,7 +7,6 @@ global
         user haproxy
         group haproxy
         daemon
-
         # Default SSL material locations
         ca-base /etc/ssl/certs
         crt-base /etc/ssl/private
