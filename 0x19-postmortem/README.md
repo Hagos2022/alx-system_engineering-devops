@@ -1,5 +1,5 @@
 # Postmortem
-Learning how to write an Incident Report, also referred to as a Postmortem. This postmortem follows the guidelines used closely by google engineers to file reports. The report is made up of five parts, an issue summary, a timeline, root cause analysis, resolution and recovery, and lastly, corrective and preventative measures. Lets review each of these parts in detail.
+Learning how to write an Incident Report, also referred to as a Postmortem, is highly important. This postmortem follows the guidelines used closely by google engineers to file reports. The report is made up of five parts, an issue summary, a timeline, root cause analysis, resolution and recovery, and lastly, corrective and preventative measures. Lets review each of these parts in detail.
 
 ## Issue Summary
 I have alerted since July 14, 2024 at 7 hours EAT gap of the each week after I forked Fix_My_Code_Challenge/0x01-challenge/ to fix the code.<br>
@@ -25,4 +25,4 @@ The main cause of the issues were many but for instance I can mention one of the
 ## Resolution and Recovery
 The resolution and the recovery of this issue is update the dependance issues as it tells.
 ## Corrective and preventative measures
-After Updating the dependant software of this software, it should be updated instantly when alerted by the github by making the github alert ON.
+After Updating the dependant software of this package, it should be updated instantly when alerted by the github by making the github alert ON.
