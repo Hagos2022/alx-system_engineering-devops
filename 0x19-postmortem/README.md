@@ -1,28 +1,63 @@
-# Postmortem
-Learning how to write an Incident Report, also referred to as a Postmortem, is highly important. This postmortem follows the guidelines used closely by google engineers to file reports. The report is made up of five parts, an issue summary, a timeline, root cause analysis, resolution and recovery, and lastly, corrective and preventative measures. Lets review each of these parts in detail.
+Postmortem is a process intended to help you learn from past incidents. It is a structured process for evaluating and documenting the details of a system outage, service disruption or incident. The primary purpose of a postmortem is to understand what has happened, why it has happened and how similar incidents can be prevented in the future.
 
-## Issue Summary
-I have alerted since July 14, 2024 at 7 hours EAT gap of the each week after I forked Fix_My_Code_Challenge/0x01-challenge/ to fix the code.<br>
-After that day the github alerted me on email as depedance alert every 7 days gap(every week). The root cause was the outage of the software version.
-## Timeline
-The issue was detected start from July 14, 2024 at 6:38 AM EAT. <br>
-The issue dectected was dependancy alert because the repository I forked was fulled with the outage version of software. This incident is now present because I don't want to fix since it doesn't matter and I have no time to debug.
-## Root Cause
-The main cause of the issues were many but for instance I can mention one of them <br>
-[Security]<br>
-[CRuby] Vendored libxml2 is updated to address CVE-2022-2309, CVE-2022-40304, and CVE-2022-40303. See GHSA-2qc6-mcvw-92cw for more information.
-[CRuby] Vendored zlib is updated to address CVE-2022-37434. Nokogiri was not affected by this vulnerability, but this version of zlib was being flagged up by some vulnerability scanners, see #2626 for more information.<br>
+Benefits of Postmortem
 
-[Dependencies]<br>
-[CRuby] Vendored libxml2 is updated to v2.10.3 from v2.9.14.
-[CRuby] Vendored libxslt is updated to v1.1.37 from v1.1.35.
-[CRuby] Vendored zlib is updated from 1.2.12 to 1.2.13. (See LICENSE-DEPENDENCIES.md for details on which packages redistribute this library.)
+· Learning Opportunity: Postmortems provide a structured framework for teams to reflect on their actions and learn from mistakes. By analyzing incidents in detail, teams can identify gaps in their understanding, processes or systems and take steps to address them.
 
-[Fixed] <br>
-[CRuby] Nokogiri::XML::Namespace objects, when compacted, update their internal struct's reference to the Ruby object wrapper. Previously, with GC compaction enabled, a segmentation fault was possible after compaction was triggered. [#2658] (Thanks, @​eightbitraptor and @​peterzhu2118!)
-[CRuby] Document#remove_namespaces! now defers freeing the underlying xmlNs struct until the Document is GCed. Previously, maintaining a reference to a Namespace object that was removed in this way could lead to a segfault. [#2658] <br>
+· Continuous Improvement: Postmortems facilitate a culture of continuous improvement by encouraging teams to identify areas for enhancement and implement corrective measures. By iteratively refining systems and processes, teams can enhance reliability and resilience over time.
 
-## Resolution and Recovery
-The resolution and the recovery of this issue is update the dependance issues as it tells.
-## Corrective and preventative measures
-After Updating the dependant software of this package, it should be updated instantly when alerted by the github by making the github alert ON.
+· Prevention of Recurrence: By identifying and addressing root causes, postmortems help prevent the recurrence of similar incidents in the future. This proactive approach reduces the likelihood of service disruptions and minimizes the impact on users.
+
+· Enhanced Collaboration: Postmortems foster collaboration among cross-functional teams by bringing together individuals with diverse expertise to analyze incidents collaboratively. By sharing insights and perspectives, teams can gain a deeper understanding of complex issues and develop more effective solutions.
+
+· Transparency and Accountability: Postmortem promotes transparency and accountability by documenting incident details, analysis and actions taken. This transparency builds trust with stakeholders and demonstrates a commitment to reliability and excellence in service delivery.
+
+Postmortems typically involve blame-free analysis and discussion soon after an incident or event has taken place. An artifact is produced that includes a detailed description of exactly what went wrong in order to cause the incident, along with a list of steps to take in order to prevent a similar incident from occurring again in the future. An analysis of how your incident response process itself worked during the incident should also be included in the discussion
+
+Organizations may refer to the postmortem process in slightly different ways:
+1. Learning Review
+2. After-Action Review
+3. Incident Review
+4. Incident Report
+5. Post-Incident Review
+6. Root Cause Analysis (RCA)
+
+
+Below is a postmortem outage sample:
+
+Issue Summary
+On 14 July 2024, at 9:40 pm(EAT), the web server for our College went down due to security risk from running the Nginx web server as the root user and users were unable to use the college portal website.
+
+Root Cause: The Nginx web server was being run by root, was replaced by another service and could no longer listen on port 8080.
+
+Timeline
+
+10:20 PM: Web stack engineers checked the currently running processes with ps auxff and find the Nginx web server was not running. They further investigated by running netstat -ldpn which gives them information about the processes running and their ports.
+
+10:52 PM: Web stack engineers find apache2 is running on port 8080. They kill the process with pkill apache2 and use netstat -ldpn to confirm nothing is currently listening on port 8080.
+
+11:26 PM: Engineers checked the /etc/nginx directory to examine Nginx-specific files. They find the nginx.conf configuration file is owned by the user and group root, instead of nginx like all other nginx files, and does not contain any read, write, or execute privileges.
+
+11:39 PM: Engineers changed the owner and group to nginx with chown nginx:nginx nginx.conf and grant the user read, write, and execute privileges with chmod u+rwx nginx.conf.
+
+11:46 PM: Engineers checked that Nginx is able to run by restarting the service using sudo service nginx restart. Nginx briefly run, but the site was listening on port 80 instead of port 8080.
+
+11:50 PM: Engineers checked through common nginx files and find in /etc/nginx/sites-available/default that the server was default listening on port 80. This was changed to port 8080 and the file was saved.
+
+11:53 PM: After restarting the Nginx service, engineers found nginx is listening on port 8080. One problem was fixed.
+
+11:54 PM: However, when engineers checked the running systems again with ps auxff, they found that nginx was still running as root, which left the server more vulnerable to attack.
+
+11:56 PM: Engineers stopped running the service with sudo or the root user. They then started the service with service nginx start after switching to the nginx user with su nginx.
+
+11:57 PM: Nginx was running under the user nginx and listening on port 8080. The website for the College was back online and users can access the site.
+
+Root Cause and Resolution
+
+The root cause came from running the Nginx web server as the root user. This left the server vulnerable to attack and allowed a rival process, apache2, to take over. This attack also removed nginx user privileges and changed the default port the server was listening on.
+
+Corrective and Preventative Measures
+
+1. Run Nginx with a less-privileged user and NOT with root user
+2. Check default settings in files
+3. Add monitoring system
