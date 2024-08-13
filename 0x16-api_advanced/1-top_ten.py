@@ -1,37 +1,19 @@
 #!/usr/bin/python3
-""" Top ten """
+''' task 1 module'''
+
+import requests
+import sys
 
 
 def top_ten(subreddit):
-    """
-    Prints the titles of the first 10 hot posts listed for a given subreddit
-    """
-    from requests import get
+    '''gets 10 hottest posts of a subreddit'''
+    headers = {'User-agent': 'test23'}
+    url = 'https://www.reddit.com/r/'
+    posts = requests.get(url + '{}/hot.json?limit=10'.format(
+        sys.argv[1]), allow_redirects=False, headers=headers)
 
-    url = "https://www.reddit.com/r/{}/hot/.json?limit=10".format(subreddit)
-
-    headers = {'user-agent': 'my-app/0.0.1'}
-
-    r = get(url, headers=headers, allow_redirects=False)
-
-    if r.status_code != 200:
-        print(None)
-        return None
-
-    try:
-        js = r.json()
-
-    except ValueError:
-        print(None)
-        return None
-
-    try:
-
-        data = js.get("data")
-        children = data.get("children")
-        for child in children[:10]:
-            post = child.get("data")
-            print(post.get("title"))
-
-    except:
+    if posts.status_code == 200:
+        for post in posts.json()['data']['children']:
+            print(post['data']['title'])
+    else:
         print(None)
